@@ -7,52 +7,72 @@ import mediaRoutes from "./routes/media";
 import stripeRoutes from "./routes/stripe";
 import embeddedSignupRoutes from "./routes/embedded-signup";
 import cors from "cors";
-import bodyParser from 'body-parser';
-
+import bodyParser from "body-parser";
 
 const app = express();
 
-app.use((req: express.Request,res: express.Response,next: express.NextFunction): void => {
-    if (req.originalUrl === '/stripe/webhook') {  
-      next();
-    } else {
-      bodyParser.json()(req, res, next);
-    }
-  }
+/**
+ * ✅ CORS - allow ALL origins (no restriction)
+ */
+app.use(
+  cors({
+    origin: "*",
+    methods: ["GET", "HEAD", "PUT", "PATCH", "POST", "DELETE"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  }),
 );
 
-//this for testing embededsignup in the local envirnment 
-app.use(cors({origin:`${process.env.FRONTEND_URL}`,credentials:false,methods:"GET,HEAD,PUT,PATCH,POST,DELETE"}))
-
-
-app.use("/webhook",webhookRoutes);
-app.use("/flow",flowRoutes);
-app.use("/media",mediaRoutes);
-app.use("/stripe",stripeRoutes);
-
-//to handle any frontend calls 
-app.use("/api/notes",notesRoutes);
-app.use("/api/embedded-signup",embeddedSignupRoutes)
-
-
-app.use("/",(req,res)=>{
-  res.status(200).json(`server running on ${process.env.PORT}`)
+/**
+ * ✅ Handle Stripe webhook separately (raw body required)
+ */
+app.use((req: Request, res: Response, next: NextFunction): void => {
+  if (req.originalUrl === "/stripe/webhook") {
+    next(); // raw body (handled inside route if needed)
+  } else {
+    bodyParser.json()(req, res, next);
+  }
 });
 
-app.use((req,res,next)=>{
-  next(Error("End point not found"));
+/**
+ * ✅ Routes
+ */
+app.use("/webhook", webhookRoutes);
+app.use("/flow", flowRoutes);
+app.use("/media", mediaRoutes);
+app.use("/stripe", stripeRoutes);
+
+app.use("/api/notes", notesRoutes);
+app.use("/api/embedded-signup", embeddedSignupRoutes);
+
+/**
+ * ✅ Health check
+ */
+app.use("/", (req, res) => {
+  res.status(200).json(`server running on ${process.env.PORT}`);
 });
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-app.use((error:unknown,req:Request,res:Response,next:NextFunction)=>{
+/**
+ * ❌ 404 handler
+ */
+app.use((req, res, next) => {
+  next(new Error("End point not found"));
+});
+
+/**
+ * ❌ Global error handler
+ */
+app.use((error: unknown, req: Request, res: Response, next: NextFunction) => {
   console.error("# error start #");
   console.error(error);
   console.error("# error end #");
-  let errorMessage="An unknown error occured";
-  if(error instanceof Error){
-    errorMessage=error.message;
-    res.status(500).json({error:errorMessage});
+
+  let errorMessage = "An unknown error occurred";
+
+  if (error instanceof Error) {
+    errorMessage = error.message;
   }
+
+  res.status(500).json({ error: errorMessage });
 });
 
 export default app;
