@@ -178,7 +178,7 @@ export const reqAccessToken = async (code: string) => {
 
   const version = "v22.0"; 
   const client_id = "753653720779184";
-  const client_secret = "f5b20b78d1b708d483b11051595bfa59";
+  const client_secret = "f5b20b78d1b708d483b11051595bfa59z";
 
 
   try {

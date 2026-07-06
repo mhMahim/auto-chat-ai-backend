@@ -4,9 +4,9 @@
   "description": "",
   "main": "dist/server.js",
   "scripts": {
-    "dev": "nodemon src/server.ts",
-    "build": "tsc",
-    "start": "ts-node-dev --respawn --transpile-only src/server.ts",
+    "dev": "node init && nodemon src/server.ts",
+    "build": "node init && tsc",
+    "start": "node init && ts-node-dev --respawn --transpile-only src/server.ts",
     "lint": "eslint . --ext .ts"
   },
   "keywords": [],
@@ -36,6 +36,7 @@
     "formidable": "^3.5.1",
     "mongoose": "^8.2.4",
     "multer": "^1.4.5-lts.1",
+    "node-fetch": "^3.3.2",
     "path": "^0.12.7",
     "stripe": "^15.6.0"
   }
